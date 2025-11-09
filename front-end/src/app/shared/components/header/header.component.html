@@ -1,0 +1,63 @@
+<header class="w-full bg-transparent px-6 pt-6 sm:px-8 lg:px-12">
+  <div class="glass-panel mx-auto flex w-full max-w-7xl flex-col gap-6 px-6 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+    <a
+      routerLink="/"
+      class="flex items-center gap-4 text-lg font-semibold tracking-tight text-slate-100 transition hover:text-accent"
+    >
+      <span class="grid h-11 w-11 place-items-center rounded-2xl bg-accent/15 text-2xl">🚌</span>
+      <span class="flex flex-col leading-tight">
+        <span>Chattibus</span>
+        <span class="text-xs font-normal text-slate-400">Realtime messaging platform</span>
+      </span>
+    </a>
+
+    <div class="flex w-full flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+      <nav class="flex flex-wrap items-center gap-3 text-sm font-medium text-slate-300">
+        <a
+          routerLink="/home"
+          routerLinkActive="text-accent"
+          [routerLinkActiveOptions]="{ exact: true }"
+          class="rounded-xl px-3 py-2 transition hover:text-accent/90"
+        >
+          Home
+        </a>
+        <a
+          routerLink="/friends"
+          routerLinkActive="text-accent"
+          class="rounded-xl px-3 py-2 transition hover:text-accent/90"
+        >
+          Amici
+        </a>
+        <ng-container *ngIf="currentUser$ | async as user">
+          <a
+            [routerLink]="['/chat', user.id]"
+            routerLinkActive="text-accent"
+            class="rounded-xl px-3 py-2 transition hover:text-accent/90"
+          >
+            Chat
+          </a>
+        </ng-container>
+      </nav>
+
+      <ng-container *ngIf="currentUser$ | async as user; else guestActions">
+        <div class="flex items-center gap-4">
+          <div class="grid h-11 w-11 place-items-center rounded-2xl bg-accent/20 text-base font-semibold text-accent">
+            {{ user.username.charAt(0).toUpperCase() }}
+          </div>
+          <div class="hidden min-w-[12rem] flex-col leading-tight sm:flex">
+            <span class="text-sm font-semibold text-slate-100">{{ user.username }}</span>
+            <span class="text-xs text-slate-400">{{ user.email }}</span>
+          </div>
+          <button type="button" class="btn-ghost" (click)="logout()">Logout</button>
+        </div>
+      </ng-container>
+
+      <ng-template #guestActions>
+        <div class="flex items-center gap-3">
+          <button type="button" class="btn-ghost" (click)="openLogin()">Login</button>
+          <button type="button" class="btn-primary" (click)="openRegister()">Registrati</button>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</header>

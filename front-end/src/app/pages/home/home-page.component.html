@@ -1,0 +1,13 @@
+<section class="fade-in flex flex-col gap-8">
+  <div class="glass-panel px-8 py-8">
+    <div class="space-y-3">
+      <h2 class="text-2xl font-semibold text-white">La tua dashboard</h2>
+      <p class="max-w-2xl text-sm text-slate-300">
+        Tieni d'occhio le ultime conversazioni, continua a chattare con i tuoi contatti e resta aggiornato sui messaggi
+        in arrivo. I dati vengono sincronizzati automaticamente con il backend.
+      </p>
+    </div>
+  </div>
+
+  <app-chat-list [conversations]="conversations$ | async"></app-chat-list>
+</section>

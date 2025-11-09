@@ -1,0 +1,38 @@
+<div class="flex min-h-screen flex-col">
+  <app-header
+    (loginRequested)="openLogin()"
+    (registerRequested)="openRegister()"
+    class="sticky top-0 z-30"
+  ></app-header>
+
+  <main class="flex-1">
+    <div class="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 py-10 sm:px-8 lg:px-12">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+</div>
+
+<ng-container *ngIf="activeAuthModal$ | async as activeModal">
+  <div
+    class="fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-md transition-opacity"
+    (click)="closeAuthModal()"
+  ></div>
+
+  <div class="fixed inset-0 z-50 flex items-center justify-center px-4 py-10">
+    <div class="relative w-full max-w-lg">
+      <app-login-modal
+        *ngIf="activeModal === 'login'"
+        class="block"
+        (close)="closeAuthModal()"
+        (switchToRegister)="openRegister()"
+      ></app-login-modal>
+
+      <app-register-modal
+        *ngIf="activeModal === 'register'"
+        class="block"
+        (close)="closeAuthModal()"
+        (switchToLogin)="openLogin()"
+      ></app-register-modal>
+    </div>
+  </div>
+</ng-container>

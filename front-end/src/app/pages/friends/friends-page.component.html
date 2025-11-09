@@ -1,0 +1,92 @@
+<section class="fade-in flex flex-col gap-8">
+  <div class="glass-panel flex flex-col gap-4 px-8 py-6 sm:flex-row sm:items-center sm:justify-between">
+    <div class="space-y-2">
+      <h2 class="text-2xl font-semibold text-white">Amici</h2>
+      <p class="max-w-2xl text-sm text-slate-300">
+        Gestisci la tua rete e rispondi alle richieste. Tutte le azioni sono sincronizzate con le API ASP.NET Core.
+      </p>
+    </div>
+    <button type="button" class="btn-ghost" (click)="refresh()">Aggiorna</button>
+  </div>
+
+  <div class="grid gap-6 lg:grid-cols-2">
+    <article class="glass-panel px-6 py-6">
+      <header class="flex items-center justify-between gap-3">
+        <h3 class="text-lg font-semibold text-white">Lista amici</h3>
+        <span class="badge-pill">{{ friends().length }} totali</span>
+      </header>
+      <ul class="mt-5 space-y-3">
+        <li
+          *ngFor="let friend of friends()"
+          class="flex items-center justify-between gap-4 rounded-2xl border border-white/5 bg-white/5 px-4 py-3"
+        >
+          <div class="flex items-center gap-4">
+            <div class="grid h-10 w-10 place-items-center rounded-2xl bg-accent/15 text-sm font-semibold text-accent">
+              {{ friend.friendUsername.charAt(0).toUpperCase() }}
+            </div>
+            <div class="leading-tight">
+              <p class="text-sm font-semibold text-white">{{ friend.friendUsername }}</p>
+              <p class="text-xs text-slate-400">Amici dal {{ friend.createdAt | date: 'mediumDate' }}</p>
+            </div>
+          </div>
+        </li>
+        <li *ngIf="!friends().length" class="rounded-2xl border border-dashed border-white/10 px-4 py-10 text-center text-sm text-slate-400">
+          Ancora nessun amico. Invia una richiesta dalla sezione dedicata.
+        </li>
+      </ul>
+    </article>
+
+    <article class="glass-panel px-6 py-6">
+      <header class="flex flex-wrap items-center justify-between gap-3">
+        <h3 class="text-lg font-semibold text-white">Richieste</h3>
+        <div class="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 p-1">
+          <button
+            type="button"
+            class="rounded-2xl px-3 py-1 text-xs font-semibold"
+            [ngClass]="requestType() === 'Received' ? 'bg-accent text-slate-950' : 'text-slate-300'"
+            (click)="switchType('Received')"
+          >
+            Ricevute
+          </button>
+          <button
+            type="button"
+            class="rounded-2xl px-3 py-1 text-xs font-semibold"
+            [ngClass]="requestType() === 'Sent' ? 'bg-accent text-slate-950' : 'text-slate-300'"
+            (click)="switchType('Sent')"
+          >
+            Inviate
+          </button>
+        </div>
+      </header>
+      <ul class="mt-5 space-y-3">
+        <li
+          *ngFor="let request of requests()"
+          class="flex flex-col gap-3 rounded-2xl border border-white/5 bg-white/5 px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <div>
+            <p class="text-sm font-semibold text-white">
+              {{ requestType() === 'Received' ? request.senderUsername : request.receiverUsername }}
+            </p>
+            <p class="text-xs text-slate-400">{{ request.createdAt | date: 'medium' }}</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button
+              *ngIf="requestType() === 'Received'"
+              type="button"
+              class="btn-primary"
+              (click)="accept(request)"
+            >
+              Accetta
+            </button>
+            <button type="button" class="btn-ghost" (click)="decline(request)">
+              {{ requestType() === 'Received' ? 'Rifiuta' : 'Annulla' }}
+            </button>
+          </div>
+        </li>
+        <li *ngIf="!requests().length" class="rounded-2xl border border-dashed border-white/10 px-4 py-10 text-center text-sm text-slate-400">
+          Nessuna richiesta {{ requestType() === 'Received' ? 'in arrivo' : 'inviata' }} al momento.
+        </li>
+      </ul>
+    </article>
+  </div>
+</section>

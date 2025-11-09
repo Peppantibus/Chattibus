@@ -1,0 +1,66 @@
+<div class="glass-panel relative overflow-hidden px-8 py-8">
+  <button
+    type="button"
+    class="absolute right-4 top-4 rounded-full border border-white/10 bg-white/10 p-2 text-slate-300 transition hover:text-white"
+    (click)="close.emit()"
+    aria-label="Chiudi"
+  >
+    ✕
+  </button>
+
+  <div class="space-y-6">
+    <header class="space-y-2">
+      <h2 class="text-2xl font-semibold text-white">Crea il tuo account</h2>
+      <p class="text-sm text-slate-300">
+        Registrati per accedere alla chat realtime, gestire gli amici e ricevere notifiche istantanee.
+      </p>
+    </header>
+
+    <form class="space-y-4" [formGroup]="form" (ngSubmit)="submit()">
+      <label class="block text-sm font-medium text-slate-200">
+        <span class="mb-2 block text-xs uppercase tracking-wide text-slate-400">Username</span>
+        <input
+          formControlName="username"
+          type="text"
+          class="w-full rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white outline-none transition focus:border-accent"
+          placeholder="john_doe"
+        />
+      </label>
+
+      <label class="block text-sm font-medium text-slate-200">
+        <span class="mb-2 block text-xs uppercase tracking-wide text-slate-400">Email</span>
+        <input
+          formControlName="email"
+          type="email"
+          class="w-full rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white outline-none transition focus:border-accent"
+          placeholder="john@example.com"
+        />
+      </label>
+
+      <label class="block text-sm font-medium text-slate-200">
+        <span class="mb-2 block text-xs uppercase tracking-wide text-slate-400">Password</span>
+        <input
+          formControlName="password"
+          type="password"
+          class="w-full rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white outline-none transition focus:border-accent"
+          placeholder="Almeno 6 caratteri"
+        />
+      </label>
+
+      <p *ngIf="error" class="rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-2 text-sm text-red-200">
+        {{ error }}
+      </p>
+
+      <button type="submit" class="btn-primary w-full" [disabled]="loading || form.invalid">
+        {{ loading ? 'Registrazione in corso...' : 'Registrati' }}
+      </button>
+    </form>
+
+    <p class="text-center text-xs text-slate-400">
+      Hai già un account?
+      <button type="button" class="text-accent underline decoration-accent/40" (click)="switchToLogin.emit()">
+        Accedi
+      </button>
+    </p>
+  </div>
+</div>

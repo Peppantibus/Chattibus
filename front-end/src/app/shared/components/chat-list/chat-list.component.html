@@ -1,0 +1,32 @@
+<div class="glass-panel flex max-h-[70vh] flex-col gap-3 overflow-y-auto px-4 py-5 sm:px-6">
+  <div
+    *ngFor="let conversation of conversations; trackBy: trackById"
+    class="group flex cursor-pointer items-center gap-4 rounded-2xl px-4 py-3 transition hover:bg-white/5"
+    [ngClass]="{ 'bg-white/10': conversation.friendId === activeConversationId }"
+    (click)="select(conversation)"
+  >
+    <div class="grid h-12 w-12 place-items-center rounded-2xl bg-accent/15 text-lg font-semibold text-accent">
+      {{ conversation.friendUsername.charAt(0).toUpperCase() }}
+    </div>
+    <div class="min-w-0 flex-1">
+      <div class="flex items-center justify-between gap-3">
+        <span class="truncate text-sm font-semibold text-white">
+          {{ conversation.friendUsername }}
+        </span>
+        <span class="text-xs text-slate-400" *ngIf="conversation.lastMessageAt as last">
+          {{ last | date: 'shortTime' }}
+        </span>
+      </div>
+      <div class="mt-1 flex items-center justify-between gap-3 text-xs text-slate-400">
+        <span class="truncate">
+          {{ conversation.lastMessagePreview || 'Nessun messaggio recente' }}
+        </span>
+        <span *ngIf="conversation.unreadCount" class="badge-pill">{{ conversation.unreadCount }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!conversations?.length" class="py-10 text-center text-sm text-slate-400">
+    Nessuna conversazione ancora. Aggiungi amici per iniziare a chattare.
+  </div>
+</div>

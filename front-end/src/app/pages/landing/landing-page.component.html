@@ -1,0 +1,77 @@
+<section class="fade-in grid gap-12 lg:grid-cols-[minmax(0,1fr),minmax(0,420px)]">
+  <div class="glass-panel relative overflow-hidden px-8 py-10">
+    <div class="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-accent/20 blur-3xl"></div>
+    <div class="flex flex-col gap-8">
+      <div class="space-y-5">
+        <h1 class="text-4xl font-bold leading-tight text-white sm:text-5xl">
+          Benvenuto su
+          <span class="bg-gradient-to-r from-accent to-amber-400 bg-clip-text text-transparent">Chattibus</span>
+        </h1>
+        <p class="text-base text-slate-300 sm:text-lg">
+          Piattaforma di messaggistica full-stack con backend ASP.NET Core e frontend Angular. Autenticazione JWT,
+          gestione amici e chat realtime via WebSocket: tutto pronto per essere esteso.
+        </p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-4" *ngIf="!isAuthenticated(); else dashboardLink">
+        <button type="button" class="btn-primary" (click)="openRegister()">Registrati ora</button>
+        <button type="button" class="btn-ghost" (click)="openLogin()">Hai già un account?</button>
+      </div>
+      <ng-template #dashboardLink>
+        <a class="btn-primary" routerLink="/home">Vai alla dashboard</a>
+      </ng-template>
+
+      <dl class="grid gap-4 text-sm text-slate-300 sm:grid-cols-2">
+        <div class="rounded-2xl border border-white/5 bg-white/5 p-4">
+          <dt class="text-xs uppercase tracking-wide text-slate-400">Stack moderno</dt>
+          <dd class="mt-1 font-semibold text-white">Angular 18 • ASP.NET Core • Tailwind</dd>
+        </div>
+        <div class="rounded-2xl border border-white/5 bg-white/5 p-4">
+          <dt class="text-xs uppercase tracking-wide text-slate-400">Realtime ready</dt>
+          <dd class="mt-1 font-semibold text-white">WebSocket custom + JWT</dd>
+        </div>
+        <div class="rounded-2xl border border-white/5 bg-white/5 p-4">
+          <dt class="text-xs uppercase tracking-wide text-slate-400">UX curata</dt>
+          <dd class="mt-1 font-semibold text-white">Dark theme con tocchi caldi</dd>
+        </div>
+        <div class="rounded-2xl border border-white/5 bg-white/5 p-4">
+          <dt class="text-xs uppercase tracking-wide text-slate-400">Estendibile</dt>
+          <dd class="mt-1 font-semibold text-white">Servizi modulari e componenti riusabili</dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+
+  <div class="grid gap-6">
+    <article class="glass-panel h-full overflow-hidden px-6 py-6">
+      <h3 class="text-lg font-semibold text-white">Feature principali</h3>
+      <ul class="mt-4 space-y-3 text-sm text-slate-300">
+        <li class="flex items-start gap-3">
+          <span class="mt-1 inline-flex h-2.5 w-2.5 rounded-full bg-accent"></span>
+          Autenticazione JWT con session restore e modali dedicate.
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="mt-1 inline-flex h-2.5 w-2.5 rounded-full bg-amber-400"></span>
+          Gestione amici con richieste, filtri e notifiche.
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="mt-1 inline-flex h-2.5 w-2.5 rounded-full bg-sky-400"></span>
+          Chat realtime con WebSocket e caching client.
+        </li>
+      </ul>
+    </article>
+
+    <article class="glass-panel px-6 py-6">
+      <h3 class="text-lg font-semibold text-white">Architettura</h3>
+      <p class="mt-3 text-sm text-slate-300">
+        Il backend C# espone API REST e un endpoint WebSocket (/ws) protetto da JWT. Il frontend Angular utilizza un
+        servizio dedicato per orchestrare cache, richieste HTTP e socket realtime.
+      </p>
+      <div class="mt-6 grid gap-3 text-xs uppercase tracking-wide text-slate-400">
+        <span>Modularità • Change Detection OnPush</span>
+        <span>TailwindCSS • Animazioni fluide</span>
+        <span>State management leggero con RxJS</span>
+      </div>
+    </article>
+  </div>
+</section>

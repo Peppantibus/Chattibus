@@ -1,0 +1,24 @@
+<section class="fade-in grid gap-6 lg:grid-cols-[320px,1fr]" *ngIf="conversations().length || activeFriend(); else emptyState">
+  <app-chat-list
+    [conversations]="conversations()"
+    [activeConversationId]="activeFriendId()"
+    (conversationSelected)="onConversationSelected($event)"
+  ></app-chat-list>
+
+  <app-chat-window
+    [conversation]="activeConversationSummary()"
+    [messages]="visibleMessages()"
+    (messageSent)="onSendMessage($event)"
+  ></app-chat-window>
+</section>
+
+<ng-template #emptyState>
+  <div class="glass-panel flex flex-col items-center justify-center gap-4 px-8 py-16 text-center text-slate-300">
+    <h2 class="text-xl font-semibold text-white">Ancora nessuna chat attiva</h2>
+    <p class="max-w-md text-sm text-slate-400">
+      Aggiungi nuovi amici dalla sezione dedicata e inizia a conversare in tempo reale grazie al WebSocket configurato
+      sul backend.
+    </p>
+    <a routerLink="/friends" class="btn-primary">Gestisci gli amici</a>
+  </div>
+</ng-template>
