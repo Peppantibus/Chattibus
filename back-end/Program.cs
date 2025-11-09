@@ -13,9 +13,6 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddRazorPages();
-
 // database connection
 builder.Services.AddDbContext<ChatDbContext>(options =>
     options.UseSqlite("Data Source=chat.db"));
@@ -100,14 +97,6 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
-}
-
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -119,9 +108,6 @@ app.UseMiddleware<GlobalExceptionMiddleware>();
 
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
-
-app.UseRouting();
 
 app.UseCors("AllowFrontend");
 
@@ -130,7 +116,6 @@ app.UseAuthorization();
 
 app.UseWebSockets();
 
-app.MapRazorPages();
 app.MapControllers();
 
 //webSocketService implementato da me (tipo copia di SignalR)
