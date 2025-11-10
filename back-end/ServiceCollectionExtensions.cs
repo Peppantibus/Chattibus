@@ -1,16 +1,42 @@
 ﻿using System.Text;
+using Chat.Data;
+using Chat.Services;
+using Chat.Services.AuthService;
+using Chat.Services.CurrentUser;
+using Chat.Services.FriendService;
+using Chat.Services.MessageService;
+using Chat.Services.MessagService;
+using Chat.Services.UserService;
 using Chat.Utilities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
+    //configurazione JWT
+    public static IServiceCollection AddDependencies(this IServiceCollection services, IConfiguration config)
     {
+        // Database
+        services.AddDbContext<ChatDbContext>(options =>
+            options.UseSqlite(config.GetConnectionString("Default")));
+
+        // Dependency Injection
+        services.AddSingleton<WebSocketServices>();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddScoped<IMessageService, MessageService>();
+        services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IFriendService, FriendService>();
+        services.AddScoped<IUserService, UserService>();
+
+        // Configurazioni di sicurezza
+        services.Configure<JwtSettings>(config.GetSection("JwtSettings"));
+        services.Configure<SecuritySettings>(config.GetSection("SecuritySettings"));
         //mappatura dei campi del mio secret json e classe di config
-        var jwtSettings = configuration.GetSection("JwtSettings").Get<JwtSettings>();
+        var jwtSettings = config.GetSection("JwtSettings").Get<JwtSettings>();
 
         if (string.IsNullOrEmpty(jwtSettings?.Key))
             throw new Exception("JWT key mancante o vuota nella configurazione.");
@@ -53,8 +79,85 @@ public static class ServiceCollectionExtensions
             };
         });
 
+        // CORS
+        var allowedOrigins = config.GetSection("AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
+        services.AddCors(options =>
+        {
+            options.AddPolicy("AllowFrontend", policy =>
+            {
+                policy.WithOrigins(allowedOrigins)
+                      .AllowAnyHeader()
+                      .AllowAnyMethod()
+                      .AllowCredentials();
+            });
+        });
 
+        // Swagger
+        services.AddSwaggerGen(c =>
+        {
+            c.SwaggerDoc("v1", new OpenApiInfo
+            {
+                Title = "Chat API",
+                Version = "v1"
+            });
+
+            c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            {
+                Name = "Authorization",
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT",
+                In = ParameterLocation.Header,
+                Description = "Inserisci il token JWT nel formato: Bearer {token}"
+            });
+
+            c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        Array.Empty<string>()
+                    }
+                });
+        });
+
+        // Routing
+        services.AddRouting(o =>
+        {
+            o.LowercaseUrls = true;
+            o.LowercaseQueryStrings = true;
+        });
+
+        // Controller & accessor
+        services.AddControllers();
+        services.AddHttpContextAccessor();
+
+        // Cookie policy
+        services.ConfigureApplicationCookie(options =>
+        {
+            options.Cookie.HttpOnly = true;
+            options.Cookie.SameSite = SameSiteMode.Lax;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        });
 
         return services;
     }
+
+    public static IApplicationBuilder UseDependencies(this IApplicationBuilder app)
+    {
+        app.UseHttpsRedirection();
+        app.UseCors("AllowFrontend");
+        app.UseAuthentication();
+        app.UseAuthorization();
+        app.UseWebSockets();
+
+        return app;
+    }
+
 }

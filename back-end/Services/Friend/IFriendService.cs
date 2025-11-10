@@ -9,7 +9,7 @@ namespace Chat.Services.FriendService
         public Task<List<FriendDto>> GetAllFriends();
         public Task DeleteFriend(int id);
         //friend request
-        public Task<List<FriendRequest>> GetFriendRequests(FriendRequestType type);
+        public Task<List<FriendRequestDto>> GetFriendRequests(FriendRequestType type);
         public Task Send(string username);
         public Task Accept(int id);
         public Task DeleteFriendRequest(int id);

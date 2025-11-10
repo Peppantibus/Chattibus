@@ -22,4 +22,9 @@ public static class ApiRoutes
         public const string All = "all";
     }
 
+    public static class Users
+    {
+        public const string GetUserbyUserName = "{username}";
+    }
+
 }

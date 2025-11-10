@@ -1,6 +1,6 @@
 ﻿using Chat.Models.Entity;
 
-namespace Chat.Services.UserSerice;
+namespace Chat.Services.AuthService;
 
 public interface IAuthService
 {

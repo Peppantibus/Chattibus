@@ -1,6 +1,6 @@
 ﻿using Chat.Models.Dto;
 using Chat.Models.Entity;
-using Chat.Services.UserSerice;
+using Chat.Services.AuthService;
 using Chat.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

@@ -24,17 +24,7 @@ namespace Chat.Controller
 
         [HttpGet]
         [Route(ApiRoutes.FriendRequests.GetAll)]
-        public async Task<IActionResult> GetFriend([FromQuery] FriendRequestType type)
-        {
-            var list = await _friendService.GetFriendRequests(type);
-            var mappedResult = list.Select(x =>
-            {
-                var dto = SimpleMapper.Map<FriendRequest, FriendRequestDto>(x);
-                return dto;
-            }).ToList();
-
-            return Ok(mappedResult);
-        }
+        public async Task<IActionResult> GetFriend([FromQuery] FriendRequestType type) => Ok(await _friendService.GetFriendRequests(type));
 
         [HttpPost]
         [Route(ApiRoutes.FriendRequests.Send)]

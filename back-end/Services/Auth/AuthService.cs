@@ -4,13 +4,13 @@ using System.Security.Cryptography;
 using System.Text;
 using Chat.Data;
 using Chat.Models.Entity;
-using Chat.Services.UserSerice;
+using Chat.Services.AuthService;
 using Chat.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Chat.Services.UserService;
+namespace Chat.Services.AuthService;
 
 public class AuthService : IAuthService
 {
@@ -27,14 +27,6 @@ public class AuthService : IAuthService
 
     public async Task<string> Login(string username, string password)
     {
-        /*prendo il salt dal db tramite username
-        
-         rieseguo hash con password e salt
-        confronto i due hash
-        se uguale faccio proseguire utente (qui devo generare JWT??)
-        se diverso do errore
-        */
-
         var query = await _dbContext.Users.FirstOrDefaultAsync(x => x.Username == username);
         if (query == null)
         {
@@ -84,7 +76,7 @@ public class AuthService : IAuthService
     public byte[] HashPassword(string password, byte[] salt, int iterations = 300000)
     {
         using var pbkdf2 = new Rfc2898DeriveBytes(
-            password + _pepper,            // la password in chiaro + il pepper (simile al salt, ma mai in chiaro nel database) per una maggiore protezione da attacchi
+            password + _pepper,  // la password in chiaro + il pepper (simile al salt, ma mai in chiaro nel database) per una maggiore protezione da attacchi
             salt,                // il salt generato casualmente
             iterations,          // quante volte iterare
             HashAlgorithmName.SHA256 // algoritmo interno di hashing

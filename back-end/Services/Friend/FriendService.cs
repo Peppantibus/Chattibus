@@ -57,14 +57,23 @@ public class FriendService : IFriendService
 
     //friend request
 
-    public async Task<List<FriendRequest>> GetFriendRequests(FriendRequestType type) =>
-        await _dbContext.FriendRequests
+    public async Task<List<FriendRequestDto>> GetFriendRequests(FriendRequestType type)
+    {
+        var query = await _dbContext.FriendRequests
             .AsNoTracking()
+            .Include(r => r.Sender)
+            .Include(r => r.Receiver)
             .Where(r => type == FriendRequestType.Sent
                 ? r.SenderId == _currentUser.UserId
                 : r.ReceiverId == _currentUser.UserId)
             .ToListAsync();
-    
+
+        var result = query
+        .Select(x => FriendRequestDto.FromEntity(x))
+        .ToList();
+
+        return result;
+    }
 
     public async Task Send(string username)
     {
