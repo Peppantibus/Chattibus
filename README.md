@@ -36,9 +36,8 @@ Ho scelto di implementare un WebSocket manualmente per comprendere in profondit�
 ---
 
 ## 🧰 Come provarlo in locale
-
-# 🖥️ BACKEND (.NET 8 + EF Core + SQLite)
 ```bash
+# 🖥️ BACKEND (.NET 8 + EF Core + SQLite)
 dotnet user-secrets init
 # (consulta usersSecretsExample.json per un esempio completo)
 dotnet user-secrets set "JwtSettings:SecretKey" "tua_chiave_segreta_qui"
