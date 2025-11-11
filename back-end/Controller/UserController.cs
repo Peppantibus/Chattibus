@@ -20,8 +20,7 @@ public class UserController : ControllerBase
     }
 
     [HttpGet]
-    [Route(ApiRoutes.Users.GetUserbyUserName)]
-    public async Task<List<UserDto>> GetUsers([FromRoute] string username)
+    public async Task<List<UserDto>> GetUsers([FromQuery] string? username)
     {
         return await _userService.GetUsers(username);
     }
