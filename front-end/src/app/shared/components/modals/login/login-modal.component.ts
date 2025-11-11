@@ -6,7 +6,8 @@ import { AuthService } from '../../../../core/services/auth.service';
 @Component({
   selector: 'app-login-modal',
   templateUrl: './login-modal.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: false
 })
 export class LoginModalComponent {
   @Output() close = new EventEmitter<void>();

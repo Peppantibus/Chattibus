@@ -36,6 +36,72 @@
       </ul>
     </article>
 
+    <!-- Sezione Ricerca Utenti -->
+    <article class="glass-panel px-6 py-6">
+      <header class="flex items-center justify-between gap-3 mb-4">
+        <div>
+          <h3 class="text-lg font-semibold text-white">Cerca utenti</h3>
+          <p class="text-xs text-slate-400">Trova nuovi amici in tempo reale</p>
+        </div>
+      </header>
+    
+      <!-- Input collegato al FormControl -->
+      <input
+        [formControl]="searchControl"
+        type="text"
+        class="input flex-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-accent"
+        placeholder="Inserisci un username..."
+        autocomplete="off"
+      />
+    
+      <!-- Risultati -->
+      <div class="mt-6">
+        <h4 *ngIf="searchResults().length" class="mb-3 text-sm font-semibold text-slate-300">
+          Risultati ({{ searchResults().length }})
+        </h4>
+    
+        <ul class="space-y-3" *ngIf="searchResults().length; else emptyState">
+          <li
+            *ngFor="let user of searchResults()"
+            class="flex items-center justify-between gap-4 rounded-2xl border border-white/5 bg-white/5 px-4 py-3"
+          >
+            <div class="flex items-center gap-4">
+              <div
+                class="grid h-10 w-10 place-items-center rounded-2xl bg-accent/15 text-sm font-semibold text-accent"
+              >
+                {{ user.username.charAt(0).toUpperCase() }}
+              </div>
+              <div class="leading-tight">
+                <p class="text-sm font-semibold text-white">{{ user.username }}</p>
+                <p class="text-xs text-slate-400">{{ user.email }}</p>
+              </div>
+            </div>
+            <button type="button" class="btn-primary" (click)="addFriend(user)">
+              Invia richiesta
+            </button>
+          </li>
+        </ul>
+    
+        <ng-template #emptyState>
+          <div class="rounded-2xl border border-dashed border-white/10 px-4 py-10 text-center text-sm text-slate-400">
+            Nessun utente trovato.
+          </div>
+        </ng-template>
+      </div>
+    </article>
+    
+
+    <!-- Stato vuoto -->
+    <ng-template #noResults>
+      <div
+        class="rounded-2xl border border-dashed border-white/10 px-4 py-10 text-center text-sm text-slate-400"
+      >
+        Nessun utente trovato. Prova a cercare un altro username.
+      </div>
+    </ng-template>
+  </div>
+
+
     <article class="glass-panel px-6 py-6">
       <header class="flex flex-wrap items-center justify-between gap-3">
         <h3 class="text-lg font-semibold text-white">Richieste</h3>
@@ -88,5 +154,4 @@
         </li>
       </ul>
     </article>
-  </div>
 </section>

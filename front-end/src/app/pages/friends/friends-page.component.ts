@@ -14,24 +14,32 @@ import {
   FriendRequestType,
   FriendUser
 } from '../../core/models/friend.models';
+import { UserResponse } from 'src/app/core/models/user.models';
+import { UserService } from 'src/app/core/services/user.service';
+import { FormControl } from '@angular/forms';
+import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 
 @Component({
-  selector: 'app-friends-page',
-  templateUrl: './friends-page.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'app-friends-page',
+    templateUrl: './friends-page.component.html',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class FriendsPageComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
+  private userService = inject(UserService);
+  private readonly friendService = inject(FriendService);
+  protected readonly searchControl = new FormControl<string>('', { nonNullable: true });
 
   protected readonly friends = signal<FriendUser[]>([]);
   protected readonly requests = signal<FriendRequest[]>([]);
   protected readonly requestType = signal<FriendRequestType>('Received');
-
-  constructor(private readonly friendService: FriendService) {}
+  protected readonly searchResults = signal<UserResponse[]>([]);
 
   ngOnInit(): void {
     this.loadFriends();
     this.loadRequests();
+    this.setupSearch();
   }
 
   refresh(): void {
@@ -77,5 +85,30 @@ export class FriendsPageComponent implements OnInit {
       .getFriendRequests(type)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((requests) => this.requests.set(requests));
+  }
+
+  private setupSearch(): void {
+    this.searchControl.valueChanges
+      .pipe(
+        debounceTime(300),           // aspetta 300ms dopo l’ultimo tasto
+        distinctUntilChanged(),      // evita chiamate duplicate
+        switchMap((term) => this.userService.getUsers(term.trim())) // chiama API
+      )
+      .subscribe({
+        next: (users) => this.searchResults.set(users),
+        error: () => this.searchResults.set([])
+      });
+  }
+
+  searchUsers(username: string): void {
+    this.userService.getUsers(username).subscribe((users) => {
+      this.searchResults.set(users);
+    });
+  }
+
+  addFriend(user: UserResponse): void {
+    this.friendService
+      .sendFriendRequest(user.username)
+      .subscribe(() => this.searchResults.set([])); // pulisci la lista dopo invio
   }
 }

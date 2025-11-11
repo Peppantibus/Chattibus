@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {
   ActivatedRouteSnapshot,
   CanActivate,
@@ -10,20 +10,26 @@ import { Observable } from 'rxjs';
 
 import { AuthService } from '../services/auth.service';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class AuthGuard implements CanActivate {
-  constructor(private readonly authService: AuthService, private readonly router: Router) {}
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
 
-  canActivate(
-    route: ActivatedRouteSnapshot,
-    state: RouterStateSnapshot
-  ): boolean | UrlTree | Observable<boolean | UrlTree> | Promise<boolean | UrlTree> {
-    if (this.authService.isAuthenticated()) {
-      return true;
+  canActivate(route: ActivatedRouteSnapshot): boolean | UrlTree {
+    const isAuthenticated = this.auth.isAuthenticated();
+    const allowIfLoggedOut = route.data['allowIfLoggedOut'] === true;
+
+    if (isAuthenticated && allowIfLoggedOut) {
+      // landing page per utenti già loggati → redirect a friends
+      return this.router.parseUrl('/friends');
     }
 
-    return this.router.createUrlTree(['/'], { queryParams: { redirectTo: state.url } });
+    if (!isAuthenticated && !allowIfLoggedOut) {
+      // route protetta ma utente non loggato
+      return this.router.parseUrl('/');
+    }
+
+    return true;
   }
 }
+

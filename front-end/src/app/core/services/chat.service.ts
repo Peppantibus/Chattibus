@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 
@@ -10,10 +10,9 @@ import { ChatMessage } from '../models/chat.models';
 })
 export class ChatService {
   private readonly messagesSubject = new BehaviorSubject<ChatMessage[]>([]);
-
+  private readonly http = inject(HttpClient);
   readonly messages$ = this.messagesSubject.asObservable();
 
-  constructor(private readonly http: HttpClient) {}
 
   loadMessages(): Observable<ChatMessage[]> {
     return this.http

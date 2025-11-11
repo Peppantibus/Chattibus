@@ -8,18 +8,21 @@ import {
   OnChanges,
   Output,
   SimpleChanges,
-  ViewChild
+  ViewChild,
+  inject
 } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 import { ChatMessage, ConversationSummary } from '../../../core/models/chat.models';
 
 @Component({
-  selector: 'app-chat-window',
-  templateUrl: './chat-window.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'app-chat-window',
+    templateUrl: './chat-window.component.html',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class ChatWindowComponent implements AfterViewInit, OnChanges {
+  private readonly fb = inject(FormBuilder);
   @Input() conversation?: ConversationSummary | null;
   @Input() messages: ChatMessage[] | null | undefined;
   @Output() messageSent = new EventEmitter<string>();
@@ -29,7 +32,7 @@ export class ChatWindowComponent implements AfterViewInit, OnChanges {
     message: ['', [Validators.required, Validators.maxLength(2000)]]
   });
 
-  constructor(private readonly fb: FormBuilder) {}
+
 
   ngAfterViewInit(): void {
     this.scrollToBottom();

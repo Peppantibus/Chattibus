@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 
@@ -13,6 +13,8 @@ interface LoginRequest {
 interface RegisterRequest {
   username: string;
   email: string;
+  name: string,
+  lastName: string,
   password: string;
 }
 
@@ -23,10 +25,8 @@ export class AuthService {
   private readonly tokenKey = 'chattibus_token';
   private readonly userKey = 'chattibus_user';
   private readonly currentUserSubject = new BehaviorSubject<AuthUser | null>(null);
-
+  private readonly http = inject(HttpClient);
   readonly currentUser$ = this.currentUserSubject.asObservable();
-
-  constructor(private readonly http: HttpClient) {}
 
   login(payload: LoginRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/login`, payload).pipe(

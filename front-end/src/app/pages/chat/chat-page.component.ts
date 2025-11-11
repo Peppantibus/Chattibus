@@ -23,12 +23,19 @@ import { FriendService } from '../../core/services/friend.service';
 import { FriendUser } from '../../core/models/friend.models';
 
 @Component({
-  selector: 'app-chat-page',
-  templateUrl: './chat-page.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'app-chat-page',
+    templateUrl: './chat-page.component.html',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class ChatPageComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
+  private readonly chatService = inject(ChatService);
+  private readonly webSocketService = inject(WebSocketService);
+  private readonly authService = inject(AuthService);
+  private readonly friendService = inject(FriendService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   private readonly friends = signal<FriendUser[]>([]);
   protected readonly activeFriendId = signal<string | null>(null);
@@ -46,7 +53,7 @@ export class ChatPageComponent implements OnInit {
       return [];
     }
     return buildConversationSummaries(
-      this.allMessages(),
+      this.allMessages()  ?? [],
       this.friends(),
       user.username
     );
@@ -66,7 +73,7 @@ export class ChatPageComponent implements OnInit {
     if (!user || !friend) {
       return [];
     }
-    return messagesForFriend(this.allMessages(), friend, user.username);
+    return messagesForFriend(this.allMessages() ?? [], friend, user.username);
   });
 
   readonly activeConversationSummary = computed<ConversationSummary | null>(
@@ -88,15 +95,6 @@ export class ChatPageComponent implements OnInit {
       } satisfies ConversationSummary;
     }
   );
-
-  constructor(
-    private readonly chatService: ChatService,
-    private readonly webSocketService: WebSocketService,
-    private readonly authService: AuthService,
-    private readonly friendService: FriendService,
-    private readonly router: Router,
-    private readonly route: ActivatedRoute
-  ) {}
 
   ngOnInit(): void {
     this.webSocketService.connect();

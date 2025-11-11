@@ -2,7 +2,6 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
 import { LandingPageComponent } from './pages/landing/landing-page.component';
-import { HomePageComponent } from './pages/home/home-page.component';
 import { FriendsPageComponent } from './pages/friends/friends-page.component';
 import { ChatPageComponent } from './pages/chat/chat-page.component';
 import { AuthGuard } from './core/guards/auth.guard';
@@ -10,28 +9,23 @@ import { AuthGuard } from './core/guards/auth.guard';
 const routes: Routes = [
   {
     path: '',
-    component: LandingPageComponent
-  },
-  {
-    path: 'home',
+    component: LandingPageComponent,
     canActivate: [AuthGuard],
-    component: HomePageComponent
+    data: { allowIfLoggedOut: true }  // permette solo guest
   },
   {
     path: 'friends',
-    canActivate: [AuthGuard],
-    component: FriendsPageComponent
+    component: FriendsPageComponent,
+    canActivate: [AuthGuard]
   },
   {
     path: 'chat/:id',
-    canActivate: [AuthGuard],
-    component: ChatPageComponent
+    component: ChatPageComponent,
+    canActivate: [AuthGuard]
   },
-  {
-    path: '**',
-    redirectTo: ''
-  }
+  { path: '**', redirectTo: '' }
 ];
+
 
 @NgModule({
   imports: [RouterModule.forRoot(routes, { scrollPositionRestoration: 'top' })],

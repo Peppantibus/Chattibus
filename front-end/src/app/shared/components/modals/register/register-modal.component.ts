@@ -6,7 +6,8 @@ import { AuthService } from '../../../../core/services/auth.service';
 @Component({
   selector: 'app-register-modal',
   templateUrl: './register-modal.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: false
 })
 export class RegisterModalComponent {
   @Output() close = new EventEmitter<void>();
