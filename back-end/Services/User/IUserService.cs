@@ -4,5 +4,5 @@ namespace Chat.Services.UserService;
 
 public interface IUserService
 {
-    public Task<List<UserDto>> GetUsers(string username);
+    public Task<List<UserDto>> GetUsers(string? username);
 }
