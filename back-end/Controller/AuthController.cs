@@ -1,5 +1,6 @@
 ﻿using Chat.Models.Dto;
 using Chat.Models.Entity;
+using Chat.Routes;
 using Chat.Services.AuthService;
 using Chat.Utilities;
 using Microsoft.AspNetCore.Http;
@@ -12,15 +13,14 @@ namespace Chat.Controller
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly IOptions<JwtSettings> _jwtSettings;
         private readonly IAuthService _authService;
-        public AuthController(IAuthService authService, IOptions<JwtSettings> jwtSettings)
+        public AuthController(IAuthService authService)
         {
             _authService = authService;
-            _jwtSettings = jwtSettings;
         }
 
-        [HttpPost("register")]
+        [HttpPost]
+        [Route(ApiRoutes.Auth.Register)]
         public async Task<IActionResult> Register([FromBody] RegisterDto body)
         {
             var mappedItem = SimpleMapper.Map<RegisterDto, User>(body);
@@ -31,17 +31,17 @@ namespace Chat.Controller
             return Ok(mappedResult);
         }
 
-        [HttpPost("login")]
+        [HttpPost]
+        [Route(ApiRoutes.Auth.Login)]
         public async Task<IActionResult> Login([FromBody] LoginDto body)
         {
-            string jwt = await _authService.Login(body.Username, body.Password);
-            return Ok(new
-            {
-                token = jwt,
-                expiresIn = _jwtSettings.Value.TokenLifetimeHours * 3600,
-                user = new { username = body.Username }
-            });
+            var response = await _authService.Login(body.Username, body.Password);
+
+            return Ok(response);
         }
 
+        [HttpPost]
+        [Route(ApiRoutes.Auth.RefreshToken)]
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenDto body) => Ok(await _authService.RefreshToken(body.Token));
     }
 }

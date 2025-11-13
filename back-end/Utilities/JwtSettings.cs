@@ -12,6 +12,7 @@ public class JwtSettings
     //ulteriore controllo accetta solo i token destinati a questo "pubblico"
     public string Audience { get; set; } = string.Empty;
     //tempo di durata del token in ore
-    public int TokenLifetimeHours { get; set; }
+    public int AccessTokenLifetimeHours { get; set; }
+    public int RefreshTokenLifetimeHours { get; set; }
 
 }
