@@ -3,6 +3,7 @@ using Chat.Data;
 using Chat.Services;
 using Chat.Services.AuthService;
 using Chat.Services.FriendService;
+using Chat.Services.Mail;
 using Chat.Services.MessageService;
 using Chat.Services.MessagService;
 using Chat.Services.UserService;
@@ -29,6 +30,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IFriendService, FriendService>();
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IMailService, MailService>();
+        services.AddScoped<IMailTemplateService, MailTemplateService>();
 
         // Configurazioni di sicurezza
         services.Configure<JwtSettings>(config.GetSection("JwtSettings"));

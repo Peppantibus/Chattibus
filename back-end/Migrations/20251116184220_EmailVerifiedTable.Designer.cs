@@ -3,6 +3,7 @@ using System;
 using Chat.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Chat.Migrations
 {
     [DbContext(typeof(ChatDbContext))]
-    partial class ChatDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251116184220_EmailVerifiedTable")]
+    partial class EmailVerifiedTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.10");
@@ -97,31 +100,6 @@ namespace Chat.Migrations
                     b.ToTable("Messages");
                 });
 
-            modelBuilder.Entity("Chat.Models.Entity.PasswordResetToken", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("ExpiresAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("Token")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("PasswordResetTokens");
-                });
-
             modelBuilder.Entity("Chat.Models.Entity.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -149,9 +127,6 @@ namespace Chat.Migrations
 
                     b.Property<string>("Password")
                         .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime?>("PasswordUpdatedAt")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Salt")
@@ -201,7 +176,7 @@ namespace Chat.Migrations
             modelBuilder.Entity("Chat.Models.Entity.EmailVerifiedToken", b =>
                 {
                     b.HasOne("Chat.Models.Entity.User", "User")
-                        .WithMany("EmailVerifiedTokens")
+                        .WithMany("EmailVerifiedToken")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -247,17 +222,6 @@ namespace Chat.Migrations
                     b.Navigation("Sender");
                 });
 
-            modelBuilder.Entity("Chat.Models.Entity.PasswordResetToken", b =>
-                {
-                    b.HasOne("Chat.Models.Entity.User", "User")
-                        .WithMany("PasswordResetTokens")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Friend", b =>
                 {
                     b.HasOne("Chat.Models.Entity.User", "FriendUser")
@@ -279,13 +243,11 @@ namespace Chat.Migrations
 
             modelBuilder.Entity("Chat.Models.Entity.User", b =>
                 {
-                    b.Navigation("EmailVerifiedTokens");
+                    b.Navigation("EmailVerifiedToken");
 
                     b.Navigation("FriendOf");
 
                     b.Navigation("Friends");
-
-                    b.Navigation("PasswordResetTokens");
 
                     b.Navigation("ReceivedMessages");
 

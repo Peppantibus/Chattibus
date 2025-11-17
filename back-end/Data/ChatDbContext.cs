@@ -11,6 +11,8 @@ public class ChatDbContext : DbContext
     public DbSet<User> Users { get; set; }
     public DbSet<Friend> Friends { get; set; }
     public DbSet<FriendRequest> FriendRequests { get; set; }
+    public DbSet<EmailVerifiedToken> EmailVerifiedTokens { get; set; }
+    public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -1,4 +1,4 @@
-﻿namespace Chat.Models.Dto;
+﻿namespace Chat.Models.Dto.Auth;
 
 public class AuthResponseDto
 {
