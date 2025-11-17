@@ -1,0 +1,67 @@
+﻿<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Verifica la tua email</title>
+</head>
+<body style="margin:0; padding:0; font-family:Arial, sans-serif; background:#f4f4f4;">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+        <tr>
+            <td align="center" style="padding: 30px 0;">
+
+                <table width="480" cellpadding="0" cellspacing="0" style="background: #ffffff; border-radius: 8px; padding: 30px;">
+
+                    <tr>
+                        <td style="font-size: 22px; font-weight: bold; color:#333;">
+                            Benvenuto, {{username}} 👋
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="padding-top: 15px; font-size: 16px; color:#555;">
+                            Grazie per esserti registrato alla nostra app!
+                            Per attivare il tuo account clicca sul pulsante qui sotto:
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td align="center" style="padding: 30px 0;">
+                            <a href="{{verifyUrl}}"
+                               style="
+                     text-decoration:none;
+                     padding: 12px 24px;
+                     background: #4CAF50;
+                     color: #fff;
+                     border-radius: 6px;
+                     font-size: 16px;
+                     display: inline-block;
+                   ">
+                                Verifica il tuo account
+                            </a>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="font-size: 14px; color:#777; padding-top:20px;">
+                            Oppure copia e incolla questo link nel browser:
+                            <br><br>
+                            <span style="word-break: break-all; color:#555;">
+                                {{verifyUrl}}
+                            </span>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="padding-top:30px; font-size:12px; color:#aaaaaa;">
+                            Se non hai richiesto questo account, puoi ignorare questa email.
+                        </td>
+                    </tr>
+
+                </table>
+
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
