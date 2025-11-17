@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 
-namespace Chat.Services.CurrentUser;
+namespace Chat.Services.UserService;
 
 public interface ICurrentUserService
 {

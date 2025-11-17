@@ -2,14 +2,13 @@
 using Chat.Data;
 using Chat.Services;
 using Chat.Services.AuthService;
-using Chat.Services.CurrentUser;
 using Chat.Services.FriendService;
+using Chat.Services.Mail;
 using Chat.Services.MessageService;
 using Chat.Services.MessagService;
 using Chat.Services.UserService;
 using Chat.Utilities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -31,6 +30,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IFriendService, FriendService>();
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IMailService, MailService>();
+        services.AddScoped<IMailTemplateService, MailTemplateService>();
 
         // Configurazioni di sicurezza
         services.Configure<JwtSettings>(config.GetSection("JwtSettings"));
@@ -64,11 +65,11 @@ public static class ServiceCollectionExtensions
             {
                 OnMessageReceived = context =>
                 {
-                    // Controlla se esiste un token nella query string (es. /ws?token=abc123)
+                    // se esiste un token nella query string (es. /ws?token=abc123)
                     var accessToken = context.Request.Query["token"];
                     var path = context.HttpContext.Request.Path;
 
-                    // Lo consideriamo valido solo per le richieste WebSocket
+                    //valido solo per le richieste WebSocket
                     if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/ws"))
                     {
                         context.Token = accessToken;
@@ -137,14 +138,6 @@ public static class ServiceCollectionExtensions
         // Controller & accessor
         services.AddControllers();
         services.AddHttpContextAccessor();
-
-        // Cookie policy
-        services.ConfigureApplicationCookie(options =>
-        {
-            options.Cookie.HttpOnly = true;
-            options.Cookie.SameSite = SameSiteMode.Lax;
-            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-        });
 
         return services;
     }

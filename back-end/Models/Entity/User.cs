@@ -18,7 +18,9 @@ public class User
     public string Username { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
     public string Salt { get; set; } = string.Empty;
+    public bool EmailVerified { get; set; } = false;
     public DateTime CreationDate { get; set; } = DateTime.UtcNow;
+    public DateTime? PasswordUpdatedAt { get; set; }
 
 
     // Navigation properties
@@ -28,5 +30,7 @@ public class User
     public ICollection<Friend> FriendOf { get; set; } = new List<Friend>();  // Utenti che mi hanno aggiunto
     public ICollection<FriendRequest> SentRequests { get; set; } = new List<FriendRequest>(); //richieste inviate
     public ICollection<FriendRequest> ReceivedRequests { get; set; } = new List<FriendRequest>(); //richieste ricevute
+    public ICollection<EmailVerifiedToken> EmailVerifiedTokens { get; set; } = new List<EmailVerifiedToken>(); //token verifica email
+    public ICollection<PasswordResetToken> PasswordResetTokens  { get; set; } = new List<PasswordResetToken>(); //token reset password
 
 }
