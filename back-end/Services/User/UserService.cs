@@ -1,7 +1,7 @@
 ﻿using Chat.Data;
 using Chat.Models.Dto;
 using Chat.Models.Entity;
-using Chat.Services.CurrentUser;
+using Chat.Services.UserService;
 using Chat.Utilities;
 using Microsoft.EntityFrameworkCore;
 

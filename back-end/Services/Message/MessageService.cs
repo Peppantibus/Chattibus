@@ -1,8 +1,8 @@
 ﻿using Chat.Data;
 using Chat.Models.Dto;
 using Chat.Models.Entity;
-using Chat.Services.CurrentUser;
 using Chat.Services.MessagService;
+using Chat.Services.UserService;
 using Microsoft.EntityFrameworkCore;
 
 namespace Chat.Services.MessageService;

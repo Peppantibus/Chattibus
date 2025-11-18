@@ -2,7 +2,7 @@
 using Chat.Enum;
 using Chat.Models.Dto;
 using Chat.Models.Entity;
-using Chat.Services.CurrentUser;
+using Chat.Services.UserService;
 using Chat.Utilities;
 using Microsoft.EntityFrameworkCore;
 namespace Chat.Services.FriendService;
