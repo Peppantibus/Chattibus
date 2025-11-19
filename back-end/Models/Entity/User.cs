@@ -32,5 +32,6 @@ public class User
     public ICollection<FriendRequest> ReceivedRequests { get; set; } = new List<FriendRequest>(); //richieste ricevute
     public ICollection<EmailVerifiedToken> EmailVerifiedTokens { get; set; } = new List<EmailVerifiedToken>(); //token verifica email
     public ICollection<PasswordResetToken> PasswordResetTokens  { get; set; } = new List<PasswordResetToken>(); //token reset password
+    public ICollection<RefreshToken> RefreshTokens  { get; set; } = new List<RefreshToken>(); //refresh token rotation
 
 }

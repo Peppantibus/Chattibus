@@ -13,6 +13,7 @@ public class ChatDbContext : DbContext
     public DbSet<FriendRequest> FriendRequests { get; set; }
     public DbSet<EmailVerifiedToken> EmailVerifiedTokens { get; set; }
     public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

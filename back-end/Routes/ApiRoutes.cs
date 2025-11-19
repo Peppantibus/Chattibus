@@ -28,6 +28,7 @@ public static class ApiRoutes
         public const string Register = "register";
         public const string RefreshToken = "refresh-token";
         public const string VerifyMail = "verify";
+        public const string ValidatePassword = "validate-password";
         public const string ResetPassword = "reset-password";
         public const string RecoveryPassword = "recovery-password";
     }

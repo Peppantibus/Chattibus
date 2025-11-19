@@ -2,6 +2,7 @@
 using Chat.Models.Dto.Auth;
 using Chat.Models.Entity;
 using Chat.Routes;
+using Chat.Services.Auth;
 using Chat.Services.AuthService;
 using Chat.Utilities;
 using Microsoft.AspNetCore.Mvc;
@@ -13,11 +14,13 @@ namespace Chat.Controller
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly ITokenService _tokenService;
         private readonly IConfiguration _config;
-        public AuthController(IAuthService authService, IConfiguration config)
+        public AuthController(IAuthService authService, IConfiguration config, ITokenService tokenService)
         {
             _authService = authService;
             _config = config;
+            _tokenService = tokenService;
         }
 
         [HttpPost]
@@ -43,7 +46,42 @@ namespace Chat.Controller
 
         [HttpPost]
         [Route(ApiRoutes.Auth.RefreshToken)]
-        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenDto body) => Ok(await _authService.RefreshToken(body.Token));
+        public async Task<IActionResult> RefreshToken()
+        {
+            // 1. Leggi cookie HttpOnly
+            var refreshToken = Request.Cookies["refreshToken"];
+
+            if (string.IsNullOrEmpty(refreshToken))
+                return Unauthorized("Missing refresh token");
+
+            // 2. Chiama il service per ruotare i token
+            var result = await _tokenService.RefreshToken(refreshToken);
+
+            if (result == null)
+                return Unauthorized("Invalid refresh token");
+
+            
+            Response.Cookies.Append(
+                "refreshToken",
+                result.NewRefreshToken,     // il nuovo token generato dal service
+                new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.Strict,
+                    Expires = result.RefreshTokenExpiresAt
+                }
+            );
+
+            // 4. Ritorna solo access token e user
+            return Ok(new AuthResponseDto
+            {
+                AccessToken = result.AccessToken.Token,
+                AccessExpiresIn = result.AccessToken.ExpiresInSeconds,
+                User = result.User
+            });
+        }
+
 
         [HttpGet]
         [Route(ApiRoutes.Auth.VerifyMail)]
@@ -52,21 +90,18 @@ namespace Chat.Controller
             var result = await _authService.VerifyMail(token);
 
             if (!result)
-                return Redirect(_config["AppUrls:FrontEnd"] + "/verify?failed=true");
+                return BadRequest(result);
 
-            return Redirect(_config["AppUrls:FrontEnd"] + "");
+            return Ok(result);
         }
 
         [HttpGet]
-        [Route(ApiRoutes.Auth.ResetPassword)]
+        [Route(ApiRoutes.Auth.ValidatePassword)]
         public async Task<IActionResult> ResetPasswordRedirect([FromQuery] Guid token)
         {
             var result = await _authService.ResetPasswordRedirect(token);
 
-            if (!result)
-                return Redirect(_config["AppUrls:FrontEnd"] + $"/reset-password?token={token}");
-
-            return Redirect(_config["AppUrls:FrontEnd"] + "/reset-password");
+            return Ok(result);
         }
 
 
@@ -76,7 +111,7 @@ namespace Chat.Controller
         {
             var response = await _authService.RecoveryPassword(body.Email);
 
-            return Ok(new { Messages = response });
+            return Ok(response);
         }
 
         [HttpPut]
@@ -85,7 +120,7 @@ namespace Chat.Controller
         {
             var result = await _authService.ResetPassword(body);
 
-            return Ok(new {Success = result});
+            return Ok(result);
         }
     }
 }
