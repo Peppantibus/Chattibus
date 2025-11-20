@@ -39,7 +39,32 @@ namespace Chat.Controller
         [Route(ApiRoutes.Auth.Login)]
         public async Task<IActionResult> Login([FromBody] LoginDto body)
         {
-            var response = await _authService.Login(body.Username, body.Password);
+            var serviceResponse = await _authService.Login(body.Username, body.Password);
+
+            Response.Cookies.Append(
+                "refreshToken",
+                serviceResponse.NewRefreshToken,
+                new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,      // o false se http
+                    SameSite = SameSiteMode.None,
+                    Expires = serviceResponse.RefreshTokenExpiresAt
+                }
+            );
+
+            var response = new AuthResponseDto
+            {
+                AccessExpiresIn = serviceResponse.AccessToken.ExpiresInSeconds,
+                AccessToken = serviceResponse.AccessToken.Token,
+                User = new UserDto
+                {
+                    Id = serviceResponse.User.Id,
+                    Username = serviceResponse.User.Username,
+                    Name = serviceResponse.User.Name,
+                    LastName = serviceResponse.User.LastName,
+                }
+            };
 
             return Ok(response);
         }
@@ -52,13 +77,13 @@ namespace Chat.Controller
             var refreshToken = Request.Cookies["refreshToken"];
 
             if (string.IsNullOrEmpty(refreshToken))
-                return Unauthorized("Missing refresh token");
+                return Unauthorized("Nessun refresh token");
 
             // 2. Chiama il service per ruotare i token
             var result = await _tokenService.RefreshToken(refreshToken);
 
             if (result == null)
-                return Unauthorized("Invalid refresh token");
+                return Unauthorized("refresh token non valido");
 
             
             Response.Cookies.Append(
@@ -67,8 +92,8 @@ namespace Chat.Controller
                 new CookieOptions
                 {
                     HttpOnly = true,
-                    Secure = true,
-                    SameSite = SameSiteMode.Strict,
+                    Secure = false,
+                    SameSite = SameSiteMode.None,
                     Expires = result.RefreshTokenExpiresAt
                 }
             );

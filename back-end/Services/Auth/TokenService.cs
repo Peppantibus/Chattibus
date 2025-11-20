@@ -31,8 +31,15 @@ public class TokenService : ITokenService
     public async Task<RefreshTokenDto> RefreshToken(string token)
     {
         var result = await ValidateRefreshToken(token);
-        var accessToken = GenerateAccessToken(result.User);
-        var user = result.User;
+        var userId = result.UserId;
+        var queryUser = await _dbContext.Users.AsNoTracking().FirstOrDefaultAsync(x => x.Id == userId);
+
+        if (queryUser == null)
+        {
+            throw new InvalidOperationException("nessun utente trovato");
+        }
+
+        var accessToken = GenerateAccessToken(queryUser);
 
         return new RefreshTokenDto
         {
@@ -41,10 +48,10 @@ public class TokenService : ITokenService
             AccessToken = accessToken,
             User = new UserDto
             {
-                Id = user.Id,
-                Username = user.Username,
-                Name = user.Name,
-                LastName = user.LastName,
+                Id = queryUser.Id,
+                Username = queryUser.Username,
+                Name = queryUser.Name,
+                LastName = queryUser.LastName,
             }
         };
 
@@ -109,7 +116,7 @@ public class TokenService : ITokenService
 
     private async Task<RefreshToken> ValidateRefreshToken(string token)
     {
-        var existingEntry = await _dbContext.RefreshTokens.AsNoTracking().Include(x => x.User).FirstOrDefaultAsync(x => x.Token == token);
+        var existingEntry = await _dbContext.RefreshTokens.Include(x => x.User).FirstOrDefaultAsync(x => x.Token == token);
         
         if (existingEntry == null)
         {
@@ -142,13 +149,15 @@ public class TokenService : ITokenService
     private async Task<RefreshToken> UpdateRefreshToken(RefreshToken oldEntity)
     {
         string newToken = GenerateRefreshToken();
+
+        if (oldEntity == null) { throw new InvalidOperationException("token non trovato"); }
+            
         oldEntity.RevokedAt = DateTime.UtcNow;
         oldEntity.ReplacedByToken = newToken;
 
         var newEntity = new RefreshToken
         {
             UserId = oldEntity.UserId,
-            User = oldEntity.User,
             Token = newToken,
             CreatedAt = DateTime.UtcNow,
             ExpiresAt = DateTime.UtcNow.AddDays(30)

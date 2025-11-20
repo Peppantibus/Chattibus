@@ -34,7 +34,7 @@ public class AuthService : IAuthService
         _tokenService = tokenService;
     }
 
-    public async Task<AuthResponseDto> Login(string username, string password)
+    public async Task<RefreshTokenDto> Login(string username, string password)
     {
         var user = await _dbContext.Users.FirstOrDefaultAsync(x => x.Username == username);
         if (user == null)
@@ -60,14 +60,15 @@ public class AuthService : IAuthService
         //creo record di refreshtoken per associare utente
         var refreshToken = await _tokenService.CreateRefreshToken(user);
 
-        return new AuthResponseDto
+        return new RefreshTokenDto
         {
-            AccessToken = accesstokenResponse.Token,
-            AccessExpiresIn = accesstokenResponse.ExpiresInSeconds,
+            NewRefreshToken = refreshToken.Token,
+            RefreshTokenExpiresAt = refreshToken.ExpiresAt,
+            AccessToken = accesstokenResponse,
             User = new UserDto
             {
                 Id = user.Id,
-                Username = username,
+                Username = user.Username,
                 Name = user.Name,
                 LastName = user.LastName,
             }
