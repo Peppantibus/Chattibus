@@ -15,7 +15,7 @@ import { RegisterModalComponent } from './shared/components/modals/register/regi
 import { ChatListComponent } from './shared/components/chat-list/chat-list.component';
 import { ChatWindowComponent } from './shared/components/chat-window/chat-window.component';
 import { JwtInterceptor } from './core/interceptors/jwt.interceptor';
-
+import { AuthInterceptor } from './core/interceptors/auth.interceptor';
 @NgModule({
   declarations: [
     AppComponent,
@@ -41,7 +41,12 @@ import { JwtInterceptor } from './core/interceptors/jwt.interceptor';
       provide: HTTP_INTERCEPTORS,
       useClass: JwtInterceptor,
       multi: true
-    }
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptor,
+      multi: true
+    },
   ],
   bootstrap: [AppComponent]
 })

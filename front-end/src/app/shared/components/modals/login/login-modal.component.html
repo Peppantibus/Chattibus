@@ -1,14 +1,8 @@
-<div class="glass-panel relative overflow-hidden px-8 py-8">
-  <button
-    type="button"
-    class="absolute right-4 top-4 rounded-full border border-white/10 bg-white/10 p-2 text-slate-300 transition hover:text-white"
-    (click)="close.emit()"
-    aria-label="Chiudi"
-  >
-    ✕
-  </button>
+<div class="space-y-6">
 
-  <div class="space-y-6">
+  <!-- LOGIN MODE -->
+  <ng-container  *ngIf="mode === 'login'">
+
     <header class="space-y-2">
       <h2 class="text-2xl font-semibold text-white">Bentornato!</h2>
       <p class="text-sm text-slate-300">Accedi al tuo account per continuare a chattare con gli amici.</p>
@@ -45,10 +39,54 @@
     </form>
 
     <p class="text-center text-xs text-slate-400">
+      <button type="button" class="text-accent underline decoration-accent/40" (click)="showForgot()">
+        Password dimenticata?
+      </button>
+    </p>
+
+    <p class="text-center text-xs text-slate-400">
       Non hai un account?
       <button type="button" class="text-accent underline decoration-accent/40" (click)="switchToRegister.emit()">
         Registrati
       </button>
     </p>
-  </div>
-</div>
+
+  </ng-container>
+<!-- FORGOT PASSWORD MODE -->
+<ng-container *ngIf="mode === 'forgot'">
+  <header class="space-y-2">
+    <h2 class="text-2xl font-semibold text-white">Recupera password</h2>
+    <p class="text-sm text-slate-300">
+      Inserisci la tua email. Ti invieremo un link per reimpostare la password.
+    </p>
+  </header>
+
+  <form class="space-y-4" [formGroup]="forgotForm" (ngSubmit)="submitForgot()">
+
+    <label class="block text-sm font-medium text-slate-200">
+      <span class="mb-2 block text-xs uppercase tracking-wide text-slate-400">Email</span>
+      <input
+        formControlName="email"
+        type="email"
+        class="w-full rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white outline-none transition focus:border-accent"
+        placeholder="you@example.com"
+      />
+    </label>
+
+    <p *ngIf="success" class="rounded-2xl border border-green-500/40 bg-green-500/10 px-4 py-2 text-sm text-green-200">
+      {{ success }}
+    </p>
+
+    <p *ngIf="error" class="rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-2 text-sm text-red-200">
+      {{ error }}
+    </p>
+
+    <button type="submit" class="btn-primary w-full" [disabled]="loading || forgotForm.invalid">
+      {{ loading ? 'Invio in corso...' : 'Invia link di reset' }}
+    </button>
+
+    <button type="button" class="w-full text-xs text-accent underline decoration-accent/40" (click)="backToLogin()">
+      Torna al login
+    </button>
+  </form>
+</ng-container>

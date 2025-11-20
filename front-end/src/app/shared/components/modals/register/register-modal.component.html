@@ -9,14 +9,29 @@
   </button>
 
   <div class="space-y-6">
+
+    <!-- HEADER -->
     <header class="space-y-2">
-      <h2 class="text-2xl font-semibold text-white">Crea il tuo account</h2>
+      <h2 class="text-2xl font-semibold text-white">
+        <!-- Cambia dinamicamente -->
+        {{ mode === 'form' ? 'Crea il tuo account' : 'Verifica la tua email' }}
+      </h2>
+
       <p class="text-sm text-slate-300">
-        Registrati per accedere alla chat realtime, gestire gli amici e ricevere notifiche istantanee.
+        <ng-container *ngIf="mode === 'form'">
+          Registrati per accedere alla chat realtime, gestire gli amici e ricevere notifiche istantanee.
+        </ng-container>
+
+        <ng-container *ngIf="mode === 'verify'">
+          Abbiamo inviato una mail di verifica a <strong>{{ email }}</strong>.  
+          Clicca sul link che trovi nella tua casella per attivare l’account.
+        </ng-container>
       </p>
     </header>
 
-    <form class="space-y-4" [formGroup]="form" (ngSubmit)="submit()">
+    <!-- FORM REGISTRAZIONE -->
+    <form *ngIf="mode === 'form'" class="space-y-4" [formGroup]="form" (ngSubmit)="submit()">
+
       <label class="block text-sm font-medium text-slate-200">
         <span class="mb-2 block text-xs uppercase tracking-wide text-slate-400">Username</span>
         <input
@@ -34,6 +49,26 @@
           type="email"
           class="w-full rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white outline-none transition focus:border-accent"
           placeholder="john@example.com"
+        />
+      </label>
+
+      <label class="block text-sm font-medium text-slate-200">
+        <span class="mb-2 block text-xs uppercase tracking-wide text-slate-400">Nome</span>
+        <input
+          formControlName="name"
+          type="text"
+          class="w-full rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white outline-none transition focus:border-accent"
+          placeholder="Mario"
+        />
+      </label>
+
+      <label class="block text-sm font-medium text-slate-200">
+        <span class="mb-2 block text-xs uppercase tracking-wide text-slate-400">Cognome</span>
+        <input
+          formControlName="lastName"
+          type="text"
+          class="w-full rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white outline-none transition focus:border-accent"
+          placeholder="Rossi"
         />
       </label>
 
@@ -56,11 +91,17 @@
       </button>
     </form>
 
-    <p class="text-center text-xs text-slate-400">
-      Hai già un account?
-      <button type="button" class="text-accent underline decoration-accent/40" (click)="switchToLogin.emit()">
-        Accedi
-      </button>
-    </p>
+    <!-- MESSAGGIO POST-REGISTRAZIONE -->
+   <!-- MESSAGGIO POST-REGISTRAZIONE -->
+    <div *ngIf="mode === 'verify'" class="space-y-4 text-center">
+      <p class="text-sm text-slate-300">
+        Controlla la tua casella email.  
+        Una volta verificato l’account potrai effettuare il login dalla pagina principale.
+      </p>
+
+      <p class="text-xs text-slate-400">
+        Puoi chiudere questo riquadro.
+      </p>
+    </div>
   </div>
 </div>

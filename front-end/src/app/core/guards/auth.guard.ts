@@ -1,35 +1,41 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import {
-  ActivatedRouteSnapshot,
   CanActivate,
   Router,
-  RouterStateSnapshot,
-  UrlTree
+  ActivatedRouteSnapshot
 } from '@angular/router';
-import { Observable } from 'rxjs';
 
 import { AuthService } from '../services/auth.service';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root'
+})
 export class AuthGuard implements CanActivate {
-  private readonly auth = inject(AuthService);
-  private readonly router = inject(Router);
 
-  canActivate(route: ActivatedRouteSnapshot): boolean | UrlTree {
-    const isAuthenticated = this.auth.isAuthenticated();
+  constructor(
+    private readonly authService: AuthService,
+    private readonly router: Router
+  ) {}
+
+  canActivate(route: ActivatedRouteSnapshot): boolean {
     const allowIfLoggedOut = route.data['allowIfLoggedOut'] === true;
+    const isAuth = this.authService.isAuthenticated();
 
-    if (isAuthenticated && allowIfLoggedOut) {
-      // landing page per utenti già loggati → redirect a friends
-      return this.router.parseUrl('/friends');
+    // 1. Se è una pagina guest-friendly → permetti SEMPRE
+    if (allowIfLoggedOut) {
+      return true;
     }
 
-    if (!isAuthenticated && !allowIfLoggedOut) {
-      // route protetta ma utente non loggato
-      return this.router.parseUrl('/');
+    // 2. Se richiede autenticazione → verifica token
+    if (isAuth) {
+      return true;
     }
 
-    return true;
+    // 3. Utente non autenticato su pagina protetta → redirect landing
+    this.router.navigate(['/'], {
+      queryParams: { showLogin: true }
+    });
+
+    return false;
   }
 }
-
