@@ -6,6 +6,7 @@ using Chat.Data;
 using Chat.Models.Dto;
 using Chat.Models.Dto.Auth;
 using Chat.Models.Entity;
+using Chat.Services.Auth;
 using Chat.Services.AuthService;
 using Chat.Services.Mail;
 using Chat.Services.UserService;
@@ -19,34 +20,34 @@ namespace Chat.Services.AuthService;
 public class AuthService : IAuthService
 {
     private readonly ChatDbContext _dbContext;
-    private readonly IOptions<JwtSettings> _jwtSettings;
     private readonly string _pepper;
     private readonly ICurrentUserService _currentUser;
     private readonly IMailService _mailService;
+    private readonly ITokenService _tokenService;
 
-    public AuthService(ChatDbContext dbContext, IOptions<JwtSettings> jwtSettings, IOptions<SecuritySettings> securitySettings, ICurrentUserService currentUserService, IMailService mailService)
+    public AuthService(ChatDbContext dbContext,  IOptions<SecuritySettings> securitySettings, ICurrentUserService currentUserService, IMailService mailService, ITokenService tokenService)
     {
         _dbContext = dbContext;
-        _jwtSettings = jwtSettings;
         _pepper = securitySettings.Value.Pepper;
         _currentUser = currentUserService;
         _mailService = mailService;
+        _tokenService = tokenService;
     }
 
-    public async Task<AuthResponseDto> Login(string username, string password)
+    public async Task<RefreshTokenDto> Login(string username, string password)
     {
-        var query = await _dbContext.Users.FirstOrDefaultAsync(x => x.Username == username);
-        if (query == null)
+        var user = await _dbContext.Users.FirstOrDefaultAsync(x => x.Username == username);
+        if (user == null)
         {
             throw new InvalidOperationException($"Credenziali non valide");
         }
-        if (!query.EmailVerified)
+        if (!user.EmailVerified)
         {
             throw new InvalidOperationException("devi verificare prima la mail");
         }
-        var salt = query.Salt;
+        var salt = user.Salt;
 
-        var storedHash = Convert.FromBase64String(query.Password);
+        var storedHash = Convert.FromBase64String(user.Password);
         var testHashed = HashPassword(password, Convert.FromBase64String(salt));
 
         bool isValid = CryptographicOperations.FixedTimeEquals(storedHash, testHashed);
@@ -55,18 +56,21 @@ public class AuthService : IAuthService
             throw new InvalidOperationException("Credenziali non valide");
         }
 
-        return new AuthResponseDto
+        var accesstokenResponse = _tokenService.GenerateAccessToken(user);
+        //creo record di refreshtoken per associare utente
+        var refreshToken = await _tokenService.CreateRefreshToken(user);
+
+        return new RefreshTokenDto
         {
-            AccessToken = GenerateJWT(query),
-            RefreshToken = GenerateJWT(query, true),
-            AccessExpiresIn = _jwtSettings.Value.AccessTokenLifetimeHours * 3600,
-            RefreshExpiresIn = _jwtSettings.Value.RefreshTokenLifetimeHours * 3600,
+            NewRefreshToken = refreshToken.Token,
+            RefreshTokenExpiresAt = refreshToken.ExpiresAt,
+            AccessToken = accesstokenResponse,
             User = new UserDto
             {
-                Id = query.Id,
-                Username = username,
-                Name = query.Name,
-                LastName = query.LastName,
+                Id = user.Id,
+                Username = user.Username,
+                Name = user.Name,
+                LastName = user.LastName,
             }
         };
     }
@@ -108,40 +112,7 @@ public class AuthService : IAuthService
         await _mailService.SendVerifyEmail(user.Email, user.Username, emailToken);
     }
 
-    //implementare refresh token
-    public async Task<string> RefreshToken(string token)
-    {
-        var handler = new JwtSecurityTokenHandler();
-        var tokenValidationParameter = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = false,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = _jwtSettings.Value.Issuer,
-            ValidAudience = _jwtSettings.Value.Audience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Value.Key))
-        };
-        //jwt utente
-        var jwt = handler.ValidateToken(token, tokenValidationParameter, out SecurityToken validatedToken);
-
-        var userId = jwt.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub)?.Value;
-        var username = jwt.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.UniqueName)?.Value;
-        var email = jwt.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Email)?.Value;
-        var typeClaim = jwt.Claims.FirstOrDefault(c => c.Type == "type")?.Value;
-
-        if (typeClaim != "refresh")
-            throw new SecurityTokenException("Token non valido per refresh");
-
-        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == Guid.Parse(userId!));
-
-        if (user == null)
-            throw new UnauthorizedAccessException("Utente non trovato o rimosso");
-
-        //rigenero jwt con expiredinhour di 10 giorni 
-        return GenerateJWT(user, true);
-
-    }
+    
     public async Task<string> RecoveryPassword(string email)
     {
         var existingEntry = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
@@ -249,36 +220,5 @@ public class AuthService : IAuthService
 
         return pbkdf2.GetBytes(32); // lunghezza in byte del risultato (es. 256 bit)
     }
-
-    private string GenerateJWT(User user, bool isRefresh = false)
-    {
-        // 1️ Chiave di firma
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Value.Key));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        // 2️ Claims (dati del token) il FE decryptando il jwt riceverà i dati scritti nel claims
-        var claims = new[]
-        {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new Claim(JwtRegisteredClaimNames.UniqueName, user.Username),
-            new Claim("email", user.Email),
-            !isRefresh ? new Claim("type", "access") : new Claim("type", "refresh")
-        };
-
-        int expiresInHour = !isRefresh ? _jwtSettings.Value.AccessTokenLifetimeHours : _jwtSettings.Value.RefreshTokenLifetimeHours;
-
-        // 3️ Creazione della configurazione del token
-        var token = new JwtSecurityToken(
-            issuer: _jwtSettings.Value.Issuer,
-            audience: _jwtSettings.Value.Audience,
-            claims: claims,
-            expires: DateTime.UtcNow.AddHours(expiresInHour),
-            signingCredentials: creds
-        );
-
-        // 4️ Creazione token
-        return new JwtSecurityTokenHandler().WriteToken(token);
-    }
-
 
 }

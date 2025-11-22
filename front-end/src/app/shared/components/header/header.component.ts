@@ -6,9 +6,10 @@ import { AuthService } from '../../../core/services/auth.service';
 import { AuthUser } from '../../../core/models/auth.models';
 
 @Component({
-  selector: 'app-header',
-  templateUrl: './header.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'app-header',
+    templateUrl: './header.component.html',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: false
 })
 export class HeaderComponent {
   @Output() loginRequested = new EventEmitter<void>();

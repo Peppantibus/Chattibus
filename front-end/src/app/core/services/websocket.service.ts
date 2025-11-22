@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { filter, Subject } from 'rxjs';
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 
@@ -12,10 +12,9 @@ import { IncomingWsMessage, OutgoingWsMessage } from '../models/chat.models';
 export class WebSocketService {
   private socket$?: WebSocketSubject<IncomingWsMessage | OutgoingWsMessage>;
   private readonly incomingSubject = new Subject<IncomingWsMessage>();
-
+  private readonly authService = inject(AuthService)
   readonly incoming$ = this.incomingSubject.asObservable();
 
-  constructor(private readonly authService: AuthService) {}
 
   connect(): void {
     if (this.socket$ || !this.authService.isAuthenticated()) {

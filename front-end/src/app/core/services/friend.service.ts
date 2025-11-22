@@ -1,5 +1,5 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
@@ -9,7 +9,8 @@ import { FriendRequest, FriendRequestType, FriendUser } from '../models/friend.m
   providedIn: 'root'
 })
 export class FriendService {
-  constructor(private readonly http: HttpClient) {}
+
+  private readonly http = inject(HttpClient);
 
   getFriends(): Observable<FriendUser[]> {
     return this.http.get<FriendUser[]>(`${environment.apiUrl}/friend/all`);

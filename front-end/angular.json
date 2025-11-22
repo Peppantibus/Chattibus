@@ -11,11 +11,12 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:browser",
+          "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/chattibus-frontend",
+            "outputPath": {
+              "base": "dist/chattibus-frontend"
+            },
             "index": "src/index.html",
-            "main": "src/main.ts",
             "polyfills": [
               "zone.js"
             ],
@@ -28,7 +29,8 @@
             "styles": [
               "src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [],
+            "browser": "src/main.ts"
           },
           "configurations": {
             "production": {
@@ -57,11 +59,11 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "chattibus-frontend:build"
+            "buildTarget": "chattibus-frontend:build"
           },
           "configurations": {
             "production": {
-              "browserTarget": "chattibus-frontend:build:production"
+              "buildTarget": "chattibus-frontend:build:production"
             }
           }
         },

@@ -16,7 +16,7 @@ public class MailService : IMailService
 
     public async Task SendVerifyEmail(string email, string username, Guid token)
     {
-        string verifyUrl = $"{_config["AppUrls:BackEnd"]}/api/auth/verify?token={token}";
+        string verifyUrl = $"{_config["AppUrls:FrontEnd"]}/verify-email?token={token}";
 
         var parameters = new Dictionary<string, string>
         {
@@ -40,7 +40,7 @@ public class MailService : IMailService
 
     public async Task SendResetPasswordEmail(string email, string username, Guid token)
     {
-        string resetUrl = $"{_config["AppUrls:BackEnd"]}/api/auth/reset-password?token={token}";
+        string resetUrl = $"{_config["AppUrls:FrontEnd"]}/reset-password?token={token}";
 
         var parameters = new Dictionary<string, string>
         {

@@ -5,9 +5,8 @@ namespace Chat.Services.AuthService;
 
 public interface IAuthService
 {
-    public Task<AuthResponseDto> Login(string username, string password);
+    public Task<RefreshTokenDto> Login(string username, string password);
     public Task AddUser(User user);
-    public Task<string> RefreshToken(string token);
     public Task<bool> VerifyMail(Guid token);
     public Task<bool> ResetPasswordRedirect(Guid token);
     public Task<string> RecoveryPassword(string email);

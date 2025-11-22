@@ -14,7 +14,8 @@ import { ModalService } from './core/services/modal.service';
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.Default,
+  standalone: false
 })
 export class AppComponent implements OnInit {
   readonly title = 'Chattibus';

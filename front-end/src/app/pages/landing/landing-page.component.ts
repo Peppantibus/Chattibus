@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 
 import { AuthService } from '../../core/services/auth.service';
 import { ModalService } from '../../core/services/modal.service';
@@ -6,13 +7,21 @@ import { ModalService } from '../../core/services/modal.service';
 @Component({
   selector: 'app-landing-page',
   templateUrl: './landing-page.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.Default,
+  standalone: false
 })
 export class LandingPageComponent {
-  constructor(
-    private readonly modalService: ModalService,
-    private readonly authService: AuthService
-  ) {}
+  private readonly modalService = inject(ModalService);
+  private readonly authService = inject(AuthService);
+  private readonly route = inject(ActivatedRoute);
+
+  ngOnInit(): void {
+    this.route.queryParams.subscribe(params => {
+      if (params['openLogin'] === 'true') {
+        this.modalService.openLogin();  // APRI IL MODAL LOGIN
+      }
+    });
+  }
 
   openLogin(): void {
     this.modalService.openLogin();

@@ -1,0 +1,42 @@
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800 px-4">
+    <div class="glass-panel w-full max-w-md px-8 py-8 rounded-2xl relative text-center">
+  
+      <h2 class="text-2xl font-semibold text-white mb-6">Verifica Email</h2>
+  
+      <!-- LOADING -->
+      <p *ngIf="loading" class="text-slate-300">
+        Verifica del tuo link in corso...
+      </p>
+  
+      <!-- SUCCESS -->
+      <div *ngIf="!loading && success" class="space-y-4 text-center">
+        <p class="rounded-2xl border border-green-500/40 bg-green-500/10 px-4 py-3 text-green-200">
+          La tua email è stata verificata con successo!
+        </p>
+        <p class="text-slate-300 text-sm">
+          Verrai reindirizzato automaticamente tra pochi secondi...
+        </p>
+        <button
+          class="btn-primary w-full"
+          (click)="router.navigate(['/'], { queryParams: { openLogin: true } })"
+        >
+          Vai al login ora
+        </button>     
+      </div>
+  
+      <!-- ERROR -->
+      <div *ngIf="!loading && error" class="space-y-4">
+        <p class="rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-red-200">
+          Link non valido o scaduto.
+        </p>
+  
+        <button
+          class="btn-primary w-full"
+          (click)="router.navigate(['/'])">
+          Torna alla home
+        </button>
+      </div>
+  
+    </div>
+  </div>
+  
