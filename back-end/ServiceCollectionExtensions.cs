@@ -7,12 +7,15 @@ using Chat.Services.FriendService;
 using Chat.Services.Mail;
 using Chat.Services.MessageService;
 using Chat.Services.MessagService;
+using Chat.Services.Redis;
+using Chat.Services.Security;
 using Chat.Services.UserService;
 using Chat.Utilities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using StackExchange.Redis;
 
 
 public static class ServiceCollectionExtensions
@@ -34,6 +37,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IMailService, MailService>();
         services.AddScoped<IMailTemplateService, MailTemplateService>();
         services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<IRateLimitService, RateLimitService>();
+        //redis
+        services.AddScoped<IRedisService, RedisService>();
 
         // Configurazioni di sicurezza
         services.Configure<JwtSettings>(config.GetSection("JwtSettings"));
@@ -81,6 +87,12 @@ public static class ServiceCollectionExtensions
                 }
             };
         });
+
+        //redis config
+        string redisUrl = config.GetSection("Redis")["Url"]!;
+        var mux = ConnectionMultiplexer.Connect(redisUrl);
+        services.AddSingleton<IConnectionMultiplexer>(mux);
+
 
         // CORS
         var allowedOrigins = config.GetSection("AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();

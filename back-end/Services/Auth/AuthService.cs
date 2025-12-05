@@ -1,19 +1,15 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
+﻿using System.Security.Cryptography;
 using Chat.Data;
+using Chat.Enum;
 using Chat.Models.Dto;
 using Chat.Models.Dto.Auth;
 using Chat.Models.Entity;
 using Chat.Services.Auth;
-using Chat.Services.AuthService;
 using Chat.Services.Mail;
-using Chat.Services.UserService;
+using Chat.Services.Security;
 using Chat.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Chat.Services.AuthService;
 
@@ -21,28 +17,46 @@ public class AuthService : IAuthService
 {
     private readonly ChatDbContext _dbContext;
     private readonly string _pepper;
-    private readonly ICurrentUserService _currentUser;
     private readonly IMailService _mailService;
+    private readonly IMailTemplateService _templateService;
     private readonly ITokenService _tokenService;
+    private readonly IRateLimitService _rateLimitService;
+    private readonly IConfiguration _config;
+    private readonly ILogger<AuthService> _logger;
 
-    public AuthService(ChatDbContext dbContext,  IOptions<SecuritySettings> securitySettings, ICurrentUserService currentUserService, IMailService mailService, ITokenService tokenService)
+    public AuthService(ChatDbContext dbContext,  IOptions<SecuritySettings> securitySettings, IMailService mailService, ITokenService tokenService, IRateLimitService rateLimitService, IMailTemplateService templateService, IConfiguration config, ILogger<AuthService> logger)
     {
         _dbContext = dbContext;
         _pepper = securitySettings.Value.Pepper;
-        _currentUser = currentUserService;
         _mailService = mailService;
         _tokenService = tokenService;
+        _rateLimitService = rateLimitService;
+        _templateService = templateService;
+        _config = config;
+        _logger = logger;
     }
 
     public async Task<RefreshTokenDto> Login(string username, string password)
     {
+        _logger.LogInformation("Tentativo login per utente {username}", username);
+        //verifico che l utente non sia bloccato
+        bool isBlocked = await _rateLimitService.IsBlocked(RateLimitRequestType.Login,username);
+
+        if (isBlocked)
+        {
+            _logger.LogWarning("Login bloccato per utente {username} (rate limit)", username);
+            throw new UnauthorizedAccessException("utente bloccato");
+        }
+
         var user = await _dbContext.Users.FirstOrDefaultAsync(x => x.Username == username);
         if (user == null)
         {
+            _logger.LogWarning("Login fallito: utente {username} non trovato", username);
             throw new InvalidOperationException($"Credenziali non valide");
         }
         if (!user.EmailVerified)
         {
+            _logger.LogWarning("Login fallito: email non verificata per utente {username}", username);
             throw new InvalidOperationException("devi verificare prima la mail");
         }
         var salt = user.Salt;
@@ -53,12 +67,19 @@ public class AuthService : IAuthService
         bool isValid = CryptographicOperations.FixedTimeEquals(storedHash, testHashed);
 
         if (!isValid) {
+            _logger.LogWarning("Login fallito: password errata per utente {username}", username);
+            await _rateLimitService.RegisterAttempted(RateLimitRequestType.Login, username);
             throw new InvalidOperationException("Credenziali non valide");
         }
 
         var accesstokenResponse = _tokenService.GenerateAccessToken(user);
         //creo record di refreshtoken per associare utente
         var refreshToken = await _tokenService.CreateRefreshToken(user);
+
+        //cancello da redis l istanza di tentativi dopo che l utente ha fatto login
+        await _rateLimitService.Reset(RateLimitRequestType.Login,username);
+
+        _logger.LogInformation("Login riuscito per utente {username}", username);
 
         return new RefreshTokenDto
         {
@@ -73,10 +94,20 @@ public class AuthService : IAuthService
                 LastName = user.LastName,
             }
         };
+
+
     }
 
     public async Task AddUser(User user)
     {
+        bool isBlocked = await _rateLimitService.IsBlocked(RateLimitRequestType.Register, user.Email);
+
+        if (isBlocked)
+        {
+            _logger.LogWarning("Registrazione bloccata per email {email}", user.Email);
+            throw new UnauthorizedAccessException("utente bloccato");
+        }
+
         var exists = await _dbContext.Users
             .AnyAsync(x =>
                 x.Username.ToLower() == user.Username.ToLower() ||
@@ -84,6 +115,9 @@ public class AuthService : IAuthService
 
         if (exists)
         {
+            // Tentativo fallito → incremento rate limit REGISTER
+            await _rateLimitService.RegisterAttempted(RateLimitRequestType.Register, user.Email);
+            _logger.LogWarning("Tentativo di registrazione con email/username già usata: {email}", user.Email);
             throw new InvalidOperationException("utente già esistente, riprova con un o altro username o email");
         }
 
@@ -109,12 +143,15 @@ public class AuthService : IAuthService
         _dbContext.EmailVerifiedTokens.Add(emailVerified);
         await _dbContext.SaveChangesAsync();
 
-        await _mailService.SendVerifyEmail(user.Email, user.Username, emailToken);
+        await SendAuthEmail(RateLimitRequestType.VerifyEmail, user.Email, user.Username, emailToken, "VerifyEmail.html", "Verifica email", "/verify-email?token=");
+        _logger.LogInformation("Registrazione completata per utente {email}", user.Email);
     }
 
-    
+
     public async Task<string> RecoveryPassword(string email)
     {
+        _logger.LogInformation("Richiesta reset password per email {email}", email);
+
         var existingEntry = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
 
         if (existingEntry == null)
@@ -134,7 +171,7 @@ public class AuthService : IAuthService
         _dbContext.PasswordResetTokens.Add(entryPassword);
         await _dbContext.SaveChangesAsync();
 
-        await _mailService.SendResetPasswordEmail(email, existingEntry.Username, passwordToken);
+        await SendAuthEmail(RateLimitRequestType.ResetPassword,email, existingEntry.Username, passwordToken, "ResetPassword.html", "Recupero Password", "/reset-password?token=");
 
         return "Se l'email è registrata, ti abbiamo inviato un link per il reset.";
     }
@@ -146,10 +183,16 @@ public class AuthService : IAuthService
             .FirstOrDefaultAsync(x => x.Token == token);
 
         if (entry == null)
+        {
+            _logger.LogWarning("ResetPassword: il token non esiste");
             return false;
+        }
 
         if (entry.ExpiresAt < DateTime.UtcNow)
+        {
+            _logger.LogWarning("ResetPassword: token scaduto");
             return false;
+        }
 
         return true;
     }
@@ -185,6 +228,8 @@ public class AuthService : IAuthService
         _dbContext.PasswordResetTokens.Remove(entry);
 
         await _dbContext.SaveChangesAsync();
+        
+        _logger.LogInformation("Password resettata per utente id {id}", user.Id);
 
         return true;
     }
@@ -196,15 +241,24 @@ public class AuthService : IAuthService
             .FirstOrDefaultAsync(x => x.Token == token);
 
         if (entry == null)
+        {
+            _logger.LogWarning("VerifyMail: il token non esiste");
             return false;
+        }
 
         if (entry.ExpiresAt < DateTime.UtcNow)
+        {
+            _logger.LogWarning("VerifyMail: token scaduto");
             return false;
+        }
+            
 
         entry.User.EmailVerified = true;
         _dbContext.EmailVerifiedTokens.Remove(entry);
 
         await _dbContext.SaveChangesAsync();
+
+        _logger.LogInformation("Email verificata con successo per utente {email}", entry.User.Email);
 
         return true;
     }
@@ -220,5 +274,69 @@ public class AuthService : IAuthService
 
         return pbkdf2.GetBytes(32); // lunghezza in byte del risultato (es. 256 bit)
     }
+
+    private async Task SendAuthEmail(
+     RateLimitRequestType type,
+     string email,
+     string username,
+     Guid token,
+     string templateName,
+     string subject,
+     string urlPath)
+    {
+        _logger.LogDebug("Preparazione invio email {type} a {email}", type, email);
+
+        // 1) Hard block
+        if (await _rateLimitService.IsBlocked(type, email))
+        {
+            _logger.LogWarning("Block RATE LIMIT {type} per email {email}", type, email);
+            throw new InvalidOperationException("utente bloccato");
+        }
+
+        // 2) Cooldown
+        if (await _rateLimitService.IsInCooldown(type, email))
+        {
+            _logger.LogWarning("Cooldown attivo per email {email} (tipo {type})", email, type);
+            throw new InvalidOperationException("utente in cooldown");
+        }
+        // 3) Hard attempt
+        bool attemptLimitReached = await _rateLimitService.RegisterAttempted(type, email);
+        if (attemptLimitReached)
+        {
+            _logger.LogWarning("Tentativi eccessivi per {type} email {email}. Utente bloccato.", type, email);
+            throw new InvalidOperationException("troppi tentativi, utente bloccato temporaneamente");
+        }
+
+        // 4) URL
+        string baseUrl = _config["AppUrls:FrontEnd"]!;
+        string url = $"{baseUrl}{urlPath}{token}";
+
+        // 5) Template parameters
+        var parameters = new Dictionary<string, string>
+        {
+            { "username", username },
+            { "url", url }   
+        };
+
+        // 6) Render template
+        var html = await _templateService.RenderTemplateAsync(templateName, parameters);
+
+        // 7) Send email
+        var mail = new MailDto
+        {
+            From = _config["MailService:AppMail"]!,
+            EmailTo = email,
+            Subject = subject,
+            Body = html,
+            IsHtml = true
+        };
+
+        await _mailService.SendAsync(mail);
+        _logger.LogInformation("Email {type} inviata a {email}", type, email);
+
+        // 8) Start cooldown
+        await _rateLimitService.StartCooldown(type, email, TimeSpan.FromSeconds(60));
+    }
+
 
 }
