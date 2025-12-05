@@ -1,4 +1,7 @@
 # 🗨️ Chattibus
+<img width="2555" height="1292" alt="{BAF05658-5A3B-4365-937C-5DB7BD76F1B7}" src="https://github.com/user-attachments/assets/e908eb61-a641-4095-b75f-b21648ffe321" />
+
+<img width="2555" height="1306" alt="{C4E10045-C21A-4ED9-8577-855BFC496513}" src="https://github.com/user-attachments/assets/f1c2c084-10b4-4051-8f81-e3c22695227e" />
 
 ## 🔍 Descrizione
 **Chattibus** è un'app di messaggistica realtime ispirata a **Discord**, **Slack** e **WhatsApp**, sviluppata con un focus su **sicurezza**, **architettura pulita** e **comprensione profonda dei sistemi WebSocket**.
@@ -12,7 +15,9 @@
 ## ⚙️ Architettura
 Il backend gestisce connessioni WebSocket dirette per la comunicazione in tempo reale.  
 Il sistema include:
-- Gestione utenti con autenticazione JWT  
+- Gestione utenti con autenticazione JWT
+- Gestione auth con rate limit utilizzando sistema in cache (redis)
+- Implementazione sistemi di recupero password e verifica email (mail locali usando smtp4dev)
 - Sistema di amicizie (Users, Friends, FriendRequests)  
 - Mapping personalizzato senza dipendenze esterne  
 - Logica **DTO**, **Service**, **Clean Architecture** senza over-engineering  
@@ -36,6 +41,9 @@ Ho scelto di implementare un WebSocket manualmente per comprendere in profondit�
 ---
 
 ## 🧰 Come provarlo in locale
+installare docker per usare redis e lanciare 
+  docker run --name redis -p 6379:6379 -d redis
+
 ```bash
 # 🖥️ BACKEND (.NET 8 + EF Core + SQLite)
 dotnet user-secrets init
